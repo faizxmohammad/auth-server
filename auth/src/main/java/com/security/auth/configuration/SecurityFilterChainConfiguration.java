@@ -1,5 +1,6 @@
 package com.security.auth.configuration;
 
+import com.security.auth.dao.UserRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -13,10 +14,12 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityFilterChainConfiguration {
     private final AuthenticationEntryPoint authenticationEntryPoint;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final UserRepository userRepository;
 
-    public SecurityFilterChainConfiguration(AuthenticationEntryPoint authenticationEntryPoint, JwtAuthenticationFilter jwtAuthenticationFilter) {
+    public SecurityFilterChainConfiguration(AuthenticationEntryPoint authenticationEntryPoint, JwtAuthenticationFilter jwtAuthenticationFilter, UserRepository userRepository) {
         this.authenticationEntryPoint = authenticationEntryPoint;
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+        this.userRepository = userRepository;
     }
 
     @Bean
@@ -27,11 +30,11 @@ public class SecurityFilterChainConfiguration {
         // Filter our http request using request matcher
         httpSecurity.authorizeHttpRequests(
                 // Permit all requests coming to this url without any auth
-                requestMatcher -> requestMatcher.requestMatchers("/api/auth/**")
+                requestMatcher -> requestMatcher.requestMatchers("/api/auth/login/**")
                         .permitAll()
                 // Permit all requests coming to this url without any auth
-//                        .requestMatchers("/api/auth/sign-up/**")
-//                        .permitAll()
+                        .requestMatchers("/api/auth/sign-up/**")
+                        .permitAll()
 //                // all other endpoints should be accessed by authenticated user only
                         .anyRequest()
                         .authenticated()
