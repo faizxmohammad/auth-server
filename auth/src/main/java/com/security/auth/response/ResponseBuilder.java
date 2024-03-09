@@ -9,7 +9,7 @@ import lombok.Setter;
 @Builder
 public class ResponseBuilder<T> implements Response {
     @JsonProperty("success")
-    private boolean error;
+    private boolean success;
     @JsonProperty("response")
     private T response;
 }
