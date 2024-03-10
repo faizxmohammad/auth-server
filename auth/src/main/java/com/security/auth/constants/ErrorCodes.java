@@ -15,6 +15,7 @@ public class ErrorCodes {
     static{
         statusMap.put(Status.CONFLICT, HttpStatus.CONFLICT);
         statusMap.put(Status.NOT_FOUND, HttpStatus.NOT_FOUND);
+        statusMap.put(Status.UNAUTHORIZED, HttpStatus.UNAUTHORIZED);
         statusMap.put(Status.INTERNAL_SERVER_ERROR,HttpStatus.INTERNAL_SERVER_ERROR);
     }
     public static HttpStatus getHttpStatus(Status errorCode) {

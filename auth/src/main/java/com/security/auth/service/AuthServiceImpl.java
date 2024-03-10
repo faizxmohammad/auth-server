@@ -1,12 +1,11 @@
 package com.security.auth.service;
 
+import com.security.auth.constants.ErrorCodes;
 import com.security.auth.constants.ErrorMessages;
 import com.security.auth.constants.ErrorResponseCodes;
 import com.security.auth.dao.UserRepository;
-import com.security.auth.dto.AuthRequest;
-import com.security.auth.dto.AuthResponse;
-import com.security.auth.dto.AuthStatus;
-import com.security.auth.dto.Status;
+import com.security.auth.dto.*;
+import com.security.auth.exceptions.AuthException;
 import com.security.auth.exceptions.DBException;
 import com.security.auth.model.User;
 import com.security.auth.response.Response;
@@ -24,14 +23,14 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Optional;
 
 
 @Slf4j
 @Service
 public class AuthServiceImpl implements AuthService {
+    @Autowired
     private final AuthenticationManager authenticationManager;
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
@@ -47,20 +46,20 @@ public class AuthServiceImpl implements AuthService {
         String username = authRequest.username();
         String password = authRequest.password();
 
-        var authToken = new UsernamePasswordAuthenticationToken(username, password);
-
-        // get the authenticate object
-        Authentication authenticate = null;
-        try {
-            authenticate = authenticationManager.authenticate(authToken);
-        } catch (Exception ex) {
-            log.error(ex.getMessage());
+        boolean validUser = validateUser(username, password);
+        if(!validUser){
+            String errorMessage = ErrorMessages.UNAUTHORIZED_INVALID_CREDENTIALS;
+            String errorCode = ErrorResponseCodes.UNAUTHORIZED;
+            Status status = Status.UNAUTHORIZED;
+            throw new AuthException(errorMessage,errorCode,status);
         }
 
+        var authToken = new UsernamePasswordAuthenticationToken(username, password);
+        // get the authenticate object
+        Authentication authenticate = this.authenticationManager.authenticate(authToken);
         // generate jwt token
         assert authenticate != null;
         var jwtToken = JwtUtils.generateToken(((UserDetails) (authenticate.getPrincipal())).getUsername());
-
         return ResponseBuilder.<AuthResponse>builder()
                 .success(true)
                 .response(new AuthResponse(jwtToken, AuthStatus.LOGIN_SUCCESS))
@@ -91,8 +90,12 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public Response validateToken() {
-        return null;
+    public Response isTokenExpired(String jwtToken) {
+        boolean isTokenExpired = JwtUtils.isTokenExpired(jwtToken);
+        if(isTokenExpired){
+            throw new AuthException(ErrorMessages.UNAUTHORIZED, ErrorResponseCodes.UNAUTHORIZED, Status.UNAUTHORIZED);
+        }
+        return ResponseBuilder.<ValidToken>builder().success(true).response(new ValidToken(true,Status.VALID)).build();
     }
 
     private void persistUserToDB(String username, String password, String name) {
@@ -119,5 +122,18 @@ public class AuthServiceImpl implements AuthService {
             throw new DBException(ErrorMessages.INTERNAL_SERVER_ERROR, ErrorResponseCodes.INTERNAL_SERVER_ERROR, Status.INTERNAL_SERVER_ERROR);
         }
     }
-
+    private boolean validateUser(String username, String password) {
+        // If user does not exists return false
+        boolean existsByUsername = userRepository.existsByUsername(username);
+        if (!existsByUsername) {
+            return false;
+        }
+        // If user exists validate the credentials.
+        Optional<User> user = userRepository.findByUsername(username);
+        if (user.isPresent()) {
+            String dbPassword = user.get().getPassword();
+            return passwordEncoder.matches(password, dbPassword);
+        }
+        return false;
+    }
 }
