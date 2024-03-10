@@ -33,15 +33,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         // fetch token from the request
         var jwtTokenOptional = getTokenFromTheRequest(request);
+
         // validate JWTToken if its present
-        jwtTokenOptional.ifPresent(jwtToken -> {
-            // validation
-            if (JwtUtils.validateToken(jwtToken)) {
+        if (jwtTokenOptional.isPresent()) {
+
+            // validate the jwt token
+            if (JwtUtils.validateToken(jwtTokenOptional.get())) {
+
                 // get username from token
-                var usernameOptional = JwtUtils.getUsernameFromToken(jwtToken);
+                var usernameOptional = JwtUtils.getUsernameFromToken(jwtTokenOptional.get());
+
                 // fetch user Details with this username
-                usernameOptional.ifPresent(username -> {
-                    var userDetails = userDetailsService.loadUserByUsername(username);
+                if (usernameOptional.isPresent()) {
+                    var userDetails = userDetailsService.loadUserByUsername(usernameOptional.get());
 
                     // create a new authentication token
                     var authenticationToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
@@ -52,11 +56,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     // Set Authentication token to security context
                     // this security context holds the details of authenticated user
                     SecurityContextHolder.getContext().setAuthentication(authenticationToken);
-                });
-
-
+                }
             }
-        });
+        }
 
         // if jwtToken is not present then do other filtration on it
         filterChain.doFilter(request, response);

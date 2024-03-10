@@ -6,7 +6,6 @@ import com.security.auth.response.Response;
 public interface AuthService {
     Response login(AuthRequest authRequest);
     Response signup(AuthRequest authRequest);
-
-    Response validateToken();
+    Response isTokenExpired(String jwtToken);
 
 }

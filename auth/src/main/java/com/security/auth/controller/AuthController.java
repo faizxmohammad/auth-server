@@ -28,9 +28,9 @@ public class AuthController {
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
-
-    @PostMapping("/validate-token")
-    public ResponseEntity<Response> validateToken(@RequestHeader("Authorization") String jwtToken){
-        return null;
+    @GetMapping("/validate-token")
+    public ResponseEntity<Response> isTokenExpired(@RequestHeader("Authorization") String jwtToken){
+        Response response =  authService.isTokenExpired(jwtToken);
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 }
