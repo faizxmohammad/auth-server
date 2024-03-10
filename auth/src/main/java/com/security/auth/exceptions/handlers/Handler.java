@@ -1,7 +1,6 @@
 package com.security.auth.exceptions.handlers;
 
 
-import com.fasterxml.jackson.databind.util.JSONPObject;
 import com.security.auth.constants.ErrorCodes;
 import com.security.auth.constants.ErrorResponseCodes;
 import com.security.auth.dto.ErrorResponse;
@@ -11,14 +10,12 @@ import com.security.auth.exceptions.DBException;
 import com.security.auth.response.Response;
 import com.security.auth.response.ResponseBuilder;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
 
 @ControllerAdvice
 @Slf4j

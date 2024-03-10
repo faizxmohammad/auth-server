@@ -1,6 +1,5 @@
 package com.security.auth.service;
 
-import com.security.auth.constants.ErrorCodes;
 import com.security.auth.constants.ErrorMessages;
 import com.security.auth.constants.ErrorResponseCodes;
 import com.security.auth.dao.UserRepository;
